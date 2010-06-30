@@ -1,0 +1,5 @@
+; $Id$
+name = Node Option Premium
+description = Node Option Premium.
+; package = Custom
+core = 6.x

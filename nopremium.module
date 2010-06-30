@@ -1,0 +1,170 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Written by Henri MEDOT <henri.medot[AT]absyx[DOT]fr>
+ * http://www.absyx.fr
+ */
+
+
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function nopremium_form_node_type_form_alter(&$form, &$form_state) {
+  if (isset($form['workflow']['node_options']['#options'])) {
+    $form['workflow']['node_options']['#options']['premium'] = t('Premium content');
+  }
+}
+
+
+
+/**
+ * Implementation of hook_node_operations().
+ */
+function nopremium_node_operations() {
+  return array(
+    'premium' => array(
+      'label' => t('Make premium'),
+      'callback' => 'node_mass_update',
+      'callback arguments' => array('updates' => array('status' => 1, 'premium' => 1)),
+    ),
+    'non_premium' => array(
+      'label' => t('Make non-premium'),
+      'callback' => 'node_mass_update',
+      'callback arguments' => array('updates' => array('premium' => 0)),
+    ),
+  );
+}
+
+
+
+/**
+ * Implementation of hook_action_info().
+ */
+function nopremium_action_info() {
+  return array(
+    'node_make_premium_action' => array(
+      'type' => 'node',
+      'description' => t('Make post premium'),
+      'configurable' => FALSE,
+      'behavior' => array('changes_node_property'),
+      'hooks' => array(
+        'nodeapi' => array('presave'),
+        'comment' => array('insert', 'update'),
+      ),
+    ),
+    'node_make_non_premium_action' => array(
+      'type' => 'node',
+      'description' => t('Make post non-premium'),
+      'configurable' => FALSE,
+      'behavior' => array('changes_node_property'),
+      'hooks' => array(
+        'nodeapi' => array('presave'),
+        'comment' => array('delete', 'insert', 'update'),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implementation of a Drupal action.
+ * Sets the premium property of a node to 1.
+ */
+function node_make_premium_action(&$node, $context = array()) {
+  $node->premium = 1;
+  watchdog('action', 'Set @type %title to premium.', array('@type' => node_get_types('name', $node), '%title' => $node->title));
+}
+
+/**
+ * Implementation of a Drupal action.
+ * Sets the premium property of a node to 0.
+ */
+function node_make_non_premium_action(&$node, $context = array()) {
+  $node->premium = 0;
+  watchdog('action', 'Set @type %title to non-premium.', array('@type' => node_get_types('name', $node), '%title' => $node->title));
+}
+
+
+
+/**
+ * Implementation of hook_nodeapi()
+ */
+function nopremium_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  switch ($op) {
+    case 'alter':
+      if (!$a3 && $node->premium && !user_access('view full '. $node->type .' premium content')) {
+        nopremium_alter_node($node,$a4);
+      }
+      break;
+    case 'prepare':
+      // Set up premium default value, if required.
+      if (!isset($node->nid)) {
+        $node_options = variable_get('node_options_'.$node->type, array());
+        $node->premium = in_array('premium', $node_options);
+      }
+      break;
+  }
+}
+
+function nopremium_alter_node(&$node, $page) {
+  $node->teaser = check_markup($node->teaser, $node->format, FALSE);
+  $node->content = array(
+    'body' => array(
+      '#value' => $node->teaser,
+      '#weight' => 0,
+    ),
+  );
+  node_invoke_nodeapi($node, 'view', TRUE, $page);
+    print_r($node);exit;
+  $node->body = drupal_render($node->content);
+  unset($node->teaser);
+  node_invoke_nodeapi($node, 'alter', TRUE, $page);
+  print_r($node);exit;
+  //$node->content .= '<div>Premium users only!</div>';
+}
+
+
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function nopremium_form_alter(&$form, $form_state, $form_id) {
+  if (isset($form['#node']->type) && ($form['#node']->type.'_node_form' == $form_id)) {
+    $form['options']['premium'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Premium content'),
+      '#default_value' => $form['#node']->premium,
+    );
+
+    // Allow or not to override the premium option.
+    // See http://drupal.org/project/override_node_options
+    if (!user_access('administer nodes')) {
+      $form['options']['premium']['#access'] = user_access('override '. $form['#node']->type .' premium option');
+    }
+  }
+}
+
+
+
+/**
+ * Implementation of hook_views_api().
+ */
+function nopremium_views_api() {
+  return array('api' => 2);
+}
+
+
+
+/**
+ * Implementation of hook_perm().
+ */
+function nopremium_perm() {
+  $perms = array();
+  foreach (array_keys(node_get_types('names')) as $type) {
+    $perms[] = 'view full '. $type .' premium content';
+    $perms[] = 'override '. $type .' premium option';
+  }
+  return $perms;
+}
