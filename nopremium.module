@@ -9,6 +9,10 @@
 
 
 
+/******************************************************************************
+ * Hook functions
+ ******************************************************************************/
+
 /**
  * Implementation of hook_form_FORM_ID_alter().
  */
@@ -89,13 +93,29 @@ function node_make_non_premium_action(&$node, $context = array()) {
 
 
 /**
- * Implementation of hook_nodeapi()
+ * Implementation of hook_theme().
+ */
+function nopremium_theme() {
+  return array(
+    'nopremium_body' => array(
+      'arguments' => array('node' => NULL),
+    ),
+    'nopremium_message' => array(
+      'arguments' => array('node' => NULL),
+    ),
+  );
+}
+
+
+
+/**
+ * Implementation of hook_nodeapi().
  */
 function nopremium_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   switch ($op) {
     case 'alter':
-      if (!$a3 && $node->premium && !user_access('view full '. $node->type .' premium content')) {
-        nopremium_alter_node($node,$a4);
+      if (!$a3 && $node->premium && !nopremium_access_full_content($node)) {
+        $node = nopremium_alter_node($node, $a4);
       }
       break;
     case 'prepare':
@@ -106,23 +126,6 @@ function nopremium_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       }
       break;
   }
-}
-
-function nopremium_alter_node(&$node, $page) {
-  $node->teaser = check_markup($node->teaser, $node->format, FALSE);
-  $node->content = array(
-    'body' => array(
-      '#value' => $node->teaser,
-      '#weight' => 0,
-    ),
-  );
-  node_invoke_nodeapi($node, 'view', TRUE, $page);
-    print_r($node);exit;
-  $node->body = drupal_render($node->content);
-  unset($node->teaser);
-  node_invoke_nodeapi($node, 'alter', TRUE, $page);
-  print_r($node);exit;
-  //$node->content .= '<div>Premium users only!</div>';
 }
 
 
@@ -167,4 +170,78 @@ function nopremium_perm() {
     $perms[] = 'override '. $type .' premium option';
   }
   return $perms;
+}
+
+
+
+/******************************************************************************
+ * Theme functions
+ ******************************************************************************/
+
+/**
+ * Theme nopremium body.
+ *
+ * @ingroup themeable
+ */
+function theme_nopremium_body($node) {
+  $output  = $node->teaser;
+  $output .= '<div class="premium-message">'. $node->nopremium_message .'</div>';
+  return $output;
+}
+
+
+
+/**
+ * Theme nopremium message.
+ *
+ * @ingroup themeable
+ */
+function theme_nopremium_message($node) {
+  return t('The full content of this page is available to premium users only.');
+}
+
+
+
+/******************************************************************************
+ * API and helper functions
+ ******************************************************************************/
+
+/**
+ * Determine whether the current user may access the full content of the specified nopremium node.
+ */
+function nopremium_access_full_content($node, $account = NULL) {
+  if (empty($account)) {
+    $account = $GLOBALS['user'];
+  }
+
+  return user_access('administer nodes', $account)
+    || user_access('view full '. $node->type .' premium content', $account)
+    || node_access('update', $node, $account)
+    || $account->uid && ($account->uid == $node->uid);
+}
+
+
+
+/**
+ * Alter a node replacing full body by nopremium body.
+ */
+function nopremium_alter_node($node, $page) {
+  $links = isset($node->links);
+  $node = node_load($node->nid);
+
+  $node = node_build_content($node, TRUE, $page);
+  $node->readmore = FALSE;
+  if ($links) {
+    $node->links = module_invoke_all('link', 'node', $node, TRUE);
+    drupal_alter('link', $node->links, $node);
+  }
+  $content = drupal_render($node->content);
+  $node->teaser = $content;
+  unset($node->body);
+  node_invoke_nodeapi($node, 'alter', TRUE, $page);
+
+  $node->nopremium_message = theme('nopremium_message', $node);
+  $node->body = theme('nopremium_body', $node);
+  unset($node->teaser);
+  return $node;
 }
