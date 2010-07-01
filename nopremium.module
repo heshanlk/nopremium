@@ -185,7 +185,7 @@ function nopremium_perm() {
  */
 function theme_nopremium_body($node) {
   $output  = $node->teaser;
-  $output .= '<div class="premium-message">'. $node->nopremium_message .'</div>';
+  $output .= '<div class="nopremium-message">'. $node->nopremium_message .'</div>';
   return $output;
 }
 
