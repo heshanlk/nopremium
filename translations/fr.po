@@ -27,11 +27,11 @@ msgstr "Contenu"
 
 #: nopremium.rules.inc:24
 msgid "Content is premium"
-msgstr ""
+msgstr "Le contenu est premium"
 
 #: nopremium.rules.inc:44
 msgid "@node is premium content"
-msgstr ""
+msgstr "@node est un contenu premium"
 
 #: nopremium.views.inc:17;23;28 nopremium.module:21;140
 msgid "Premium content"
@@ -47,23 +47,23 @@ msgstr ""
 
 #: nopremium.module:33
 msgid "Make premium"
-msgstr ""
+msgstr "Rendre premium"
 
 #: nopremium.module:38
 msgid "Make non-premium"
-msgstr ""
+msgstr "Rendre non-premium"
 
 #: nopremium.module:54
 msgid "Make post premium"
-msgstr ""
+msgstr "Rendre le contenu premium"
 
 #: nopremium.module:64
 msgid "Make post non-premium"
-msgstr ""
+msgstr "Rendre le contenu non-premium"
 
 #: nopremium.module:200
 msgid "The full content of this page is available to premium users only."
-msgstr ""
+msgstr "Le contenu complet de cette page est disponible pour les utilisateurs premium uniquement."
 
 #: nopremium.module:81;90
 msgid "action"

@@ -143,8 +143,13 @@ function nopremium_form_alter(&$form, $form_state, $form_id) {
 
     // Allow or not to override the premium option.
     // See http://drupal.org/project/override_node_options
-    if (!user_access('administer nodes')) {
-      $form['options']['premium']['#access'] = user_access('override '. $form['#node']->type .' premium option');
+    if (!user_access('administer nodes') && user_access('override '. $form['#node']->type .' premium option')) {
+      foreach (element_children($form['options']) as $key) {
+        if (!isset($form['options'][$key]['#access'])) {
+          $form['options'][$key]['#access'] = FALSE;
+        }
+        $form['options']['#access'] = $form['options']['premium']['#access'] = TRUE;
+      }
     }
   }
 }
