@@ -29,6 +29,7 @@ function nopremium_schema_alter(&$schema) {
  * Implementation of hook_install().
  */
 function nopremium_install() {
+  db_query("UPDATE {system} SET weight = %d WHERE name = '%s'", 10, 'nopremium');
   $ret = array();
   db_add_field($ret, 'node', 'premium', array(
     'type' => 'int',
@@ -51,4 +52,14 @@ function nopremium_uninstall() {
   $ret = array();
   db_drop_index($ret, 'node', 'node_premium_status');
   db_drop_field($ret, 'node', 'premium');
+}
+
+
+
+/**
+ * Implementation of hook_update_N().
+ */
+function nopremium_update_6001() {
+  db_query("UPDATE {system} SET weight = %d WHERE name = '%s'", 10, 'nopremium');
+  return array();
 }

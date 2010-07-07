@@ -101,7 +101,3 @@ msgstr ""
 msgid "Node Option Premium"
 msgstr ""
 
-#: nopremium.info:0
-msgid "Node Option Premium."
-msgstr ""
-
