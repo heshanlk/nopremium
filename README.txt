@@ -1,4 +1,3 @@
-// $Id$
 
 NODE OPTION PREMIUM
 
