@@ -1,4 +1,3 @@
-
 NODE OPTION PREMIUM
 
 DESCRIPTION
@@ -13,7 +12,7 @@ FEATURES
 * Easy to use and to configure: you just need to set permissions.
 * Provides a permission view full premium content for each content type.
 * Provides a permission override premium option for each content type. It allows users without the administer nodes permission to change the Premium content option on node editing. This completes what provides the essential Override Node Options module for core publishing options.
-* Provides 2 actions/node operations: Make post premium and Make post non-premium.
+* Provides 2 actions/node operations: Make content premium and Make content non-premium.
 * Integrates with CCK: the teaser displayed to non-premium users is not only the teaser of the body field but includes also the CCK fields rendered in teaser context as configured on the Display fields page.
 * Integrates with Views: the module exposes a Premium content field, filter and sort.
 * Integrates with Rules: the module provides a Content is premium condition.

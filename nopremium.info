@@ -1,4 +1,4 @@
 name = Node Option Premium
 description = Shows only the teasers of premium contents to unprivileged users.
-; package = Custom
-core = 6.x
+; package = 
+core = 7.x

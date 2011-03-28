@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Written by Henri MEDOT <henri.medot[AT]absyx[DOT]fr>
@@ -28,9 +27,11 @@ function nopremium_schema_alter(&$schema) {
  * Implementation of hook_install().
  */
 function nopremium_install() {
-  db_query("UPDATE {system} SET weight = %d WHERE name = '%s'", 10, 'nopremium');
-  $ret = array();
-  db_add_field($ret, 'node', 'premium', array(
+  db_update('system')
+    ->fields(array('weight' => 10))
+    ->condition('name', 'nopremium')
+    ->execute();
+  db_add_field('node', 'premium', array(
     'type' => 'int',
     'size' => 'tiny',
     'unsigned' => TRUE,
@@ -48,9 +49,8 @@ function nopremium_install() {
  * Implementation of hook_uninstall().
  */
 function nopremium_uninstall() {
-  $ret = array();
-  db_drop_index($ret, 'node', 'node_premium_status');
-  db_drop_field($ret, 'node', 'premium');
+  db_drop_index('node', 'node_premium_status');
+  db_drop_field('node', 'premium');
 }
 
 
@@ -59,6 +59,4 @@ function nopremium_uninstall() {
  * Implementation of hook_update_N().
  */
 function nopremium_update_6001() {
-  db_query("UPDATE {system} SET weight = %d WHERE name = '%s'", 10, 'nopremium');
-  return array();
 }
