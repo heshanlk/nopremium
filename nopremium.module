@@ -184,6 +184,23 @@ function nopremium_permission() {
 
 
 
+/**
+ * Implementation of hook_menu().
+ */
+function nopremium_menu() {
+  $items['admin/settings/nopremium'] = array(
+    'title' => 'Node Option Premium',
+    'description' => 'Configure Node Option Premium.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nopremium_settings_form'),
+    'access arguments' => array('administer permissions'),
+    'file' => 'nopremium.admin.inc',
+  );
+  return $items;
+}
+
+
+
 /******************************************************************************
  * Theme functions
  ******************************************************************************/
@@ -260,5 +277,8 @@ function nopremium_alter_node(&$build) {
  * Get the raw nopremium message for the given node type.
  */
 function nopremium_get_message($type = '') {
-  return t('The full content of this page is available to premium users only.');
+  if ($type && ($value = variable_get('nopremium_message_'. $type, ''))) {
+    return t($value);
+  }
+  return t(variable_get('nopremium_message', 'The full content of this page is available to premium users only.'));
 }
