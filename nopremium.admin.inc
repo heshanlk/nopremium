@@ -8,19 +8,23 @@
 function nopremium_settings_form() {
   $form['message'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Premium message'),
+    '#title' => t('Premium messages'),
+    '#description' => t('You may customize the messages displayed to unprivileged users trying to view full premium contents.'),
   );
   $form['message']['nopremium_message'] = array(
-    '#type' => 'textfield',
+    '#type' => 'textarea',
     '#title' => t('Default message'),
     '#description' => t('This message will apply to all content types with blank messages below.'),
-    '#default_value' => variable_get('nopremium_message', 'The full content of this page is available to premium users only.'),
+    '#default_value' => nopremium_get_message(),
+    '#rows' => 3,
+    '#required' => TRUE,
   );
   foreach (node_type_get_names() as $type => $name) {
     $form['message']['nopremium_message_'. $type] = array(
-      '#type' => 'textfield',
-      '#title' => t('Message for @type content type', array('@type' => $name)),
+      '#type' => 'textarea',
+      '#title' => t('Message for %type content type', array('%type' => $name)),
       '#default_value' => variable_get('nopremium_message_'. $type, ''),
+      '#rows' => 3,
     );
   }
 

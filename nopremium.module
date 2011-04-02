@@ -188,7 +188,7 @@ function nopremium_permission() {
  * Implementation of hook_menu().
  */
 function nopremium_menu() {
-  $items['admin/settings/nopremium'] = array(
+  $items['admin/config/workflow/nopremium'] = array(
     'title' => 'Node Option Premium',
     'description' => 'Configure Node Option Premium.',
     'page callback' => 'drupal_get_form',
@@ -211,7 +211,7 @@ function nopremium_menu() {
  * @ingroup themeable
  */
 function theme_nopremium_message($variables) {
-  return '<div class="nopremium-message">'. nopremium_get_message($variables['node']->type) .'</div>';
+  return '<div class="nopremium-message">'. check_markup(t(nopremium_get_message($variables['node']->type))) .'</div>';
 }
 
 
@@ -268,6 +268,8 @@ function nopremium_alter_node(&$build) {
 
     $type = 'node';
     drupal_alter(array('node_view', 'entity_view'), $build, $type);
+
+    $build['#view_mode'] = $view_mode;
   }
 }
 
@@ -277,8 +279,12 @@ function nopremium_alter_node(&$build) {
  * Get the raw nopremium message for the given node type.
  */
 function nopremium_get_message($type = '') {
-  if ($type && ($value = variable_get('nopremium_message_'. $type, ''))) {
-    return t($value);
+  if ($type) {
+    $message = variable_get('nopremium_message_'. $type, '');
+    if ($message) {
+      return $message;
+    }
   }
-  return t(variable_get('nopremium_message', 'The full content of this page is available to premium users only.'));
+
+  return variable_get('nopremium_message', 'The full content of this page is available to premium users only.');
 }

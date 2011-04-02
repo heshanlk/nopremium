@@ -51,6 +51,7 @@ function nopremium_install() {
 function nopremium_uninstall() {
   db_drop_index('node', 'node_premium_status');
   db_drop_field('node', 'premium');
+  db_query("DELETE FROM {variable} WHERE name LIKE 'nopremium_%%'");
 }
 
 
