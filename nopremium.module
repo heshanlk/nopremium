@@ -50,7 +50,7 @@ function nopremium_action_info() {
   return array(
     'node_make_premium_action' => array(
       'type' => 'node',
-      'description' => t('Make post premium'),
+      'description' => t('Make content premium'),
       'configurable' => FALSE,
       'behavior' => array('changes_node_property'),
       'hooks' => array(
@@ -60,7 +60,7 @@ function nopremium_action_info() {
     ),
     'node_make_non_premium_action' => array(
       'type' => 'node',
-      'description' => t('Make post non-premium'),
+      'description' => t('Make content non-premium'),
       'configurable' => FALSE,
       'behavior' => array('changes_node_property'),
       'hooks' => array(
@@ -178,6 +178,23 @@ function nopremium_perm() {
 
 
 
+/**
+ * Implementation of hook_menu().
+ */
+function nopremium_menu() {
+  $items['admin/settings/nopremium'] = array(
+    'title' => 'Node Option Premium',
+    'description' => 'Configure Node Option Premium.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nopremium_settings_form'),
+    'access arguments' => array('administer permissions'),
+    'file' => 'nopremium.admin.inc',
+  );
+  return $items;
+}
+
+
+
 /******************************************************************************
  * Theme functions
  ******************************************************************************/
@@ -201,7 +218,7 @@ function theme_nopremium_body($node) {
  * @ingroup themeable
  */
 function theme_nopremium_message($node) {
-  return t('The full content of this page is available to premium users only.');
+  return check_markup(t(nopremium_get_message($node->type)));
 }
 
 
@@ -248,4 +265,20 @@ function nopremium_alter_node($node, $page) {
   $node->body = theme('nopremium_body', $node);
   unset($node->teaser);
   return $node;
+}
+
+
+
+/**
+ * Get the raw nopremium message for the given node type.
+ */
+function nopremium_get_message($type = '') {
+  if ($type) {
+    $message = variable_get('nopremium_message_'. $type, '');
+    if ($message) {
+      return $message;
+    }
+  }
+
+  return variable_get('nopremium_message', 'The full content of this page is available to premium users only.');
 }
