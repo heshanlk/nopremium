@@ -100,7 +100,7 @@ function nopremium_theme() {
       'arguments' => array('node' => NULL),
     ),
     'nopremium_message' => array(
-      'arguments' => array('node' => NULL),
+      'arguments' => array('node' => NULL, 'field' => NULL),
     ),
   );
 }
@@ -115,6 +115,13 @@ function nopremium_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
     case 'alter':
       if (!$a3 && $node->premium && !nopremium_access_full_content($node)) {
         $node = nopremium_alter_node($node, $a4);
+      }
+      break;
+    case 'view':
+      if ($a3 && nopremium_check_content_extra_field() && $node->premium && !nopremium_access_full_content($node)) {
+        $node->content['nopremium_message_field'] = array(
+          '#value' => theme('nopremium_message', $node, TRUE),
+        );
       }
       break;
     case 'prepare':
@@ -195,12 +202,34 @@ function nopremium_menu() {
 
 
 
+/**
+ * Implementation of hook_content_extra_fields.
+ */
+function nopremium_content_extra_fields($type_name) {
+  $extra = array();
+
+  if (nopremium_check_content_extra_field()) {
+    $extra['nopremium_message_field'] = array(
+      'label' => t('Premium message'),
+      'description' => t('Node Option Premium module message.'),
+      'weight' => 1,
+    );
+  }
+
+  return $extra;
+}
+
+
+
 /******************************************************************************
  * Theme functions
  ******************************************************************************/
 
 /**
  * Theme nopremium body.
+ *
+ * This function is used only when the nopremium message is not managed as a 
+ * content extra field.
  *
  * @ingroup themeable
  */
@@ -217,8 +246,12 @@ function theme_nopremium_body($node) {
  *
  * @ingroup themeable
  */
-function theme_nopremium_message($node) {
-  return check_markup(t(nopremium_get_message($node->type)));
+function theme_nopremium_message($node, $field = FALSE) {
+  $output = check_markup(t(nopremium_get_message($node->type)));
+  if ($field) {
+    $output = '<div class="nopremium-message">'. $output .'</div>';
+  }
+  return $output;
 }
 
 
@@ -228,7 +261,8 @@ function theme_nopremium_message($node) {
  ******************************************************************************/
 
 /**
- * Determine whether the current user may access the full content of the specified nopremium node.
+ * Determine whether the current user may access the full content of the
+ * specified nopremium node.
  */
 function nopremium_access_full_content($node, $account = NULL) {
   if (empty($account)) {
@@ -261,8 +295,13 @@ function nopremium_alter_node($node, $page) {
   unset($node->body);
   node_invoke_nodeapi($node, 'alter', TRUE, $page);
 
-  $node->nopremium_message = theme('nopremium_message', $node);
-  $node->body = theme('nopremium_body', $node);
+  if (nopremium_check_content_extra_field()) {
+    $node->body = $node->teaser;
+  }
+  else {
+    $node->nopremium_message = theme('nopremium_message', $node);
+    $node->body = theme('nopremium_body', $node);
+  }
   unset($node->teaser);
   return $node;
 }
@@ -281,4 +320,14 @@ function nopremium_get_message($type = '') {
   }
 
   return variable_get('nopremium_message', 'The full content of this page is available to premium users only.');
+}
+
+
+
+/**
+ * Check whether the nopremium message should be managed as a content extra
+ * field.
+ */
+function nopremium_check_content_extra_field() {
+  return module_exists('content') && variable_get('nopremium_content_extra_field', 0);
 }

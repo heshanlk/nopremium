@@ -6,6 +6,19 @@
  */
 
 function nopremium_settings_form() {
+  if (module_exists('content')) {
+    $form['general'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('General settings'),
+    );
+    $form['general']['nopremium_content_extra_field'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Manage premium message as a field'),
+      '#description' => t('If enabled, the premium message will be available as a reorderable node field on the <em>Manage fields</em> page for each content type.'),
+      '#default_value' => variable_get('nopremium_content_extra_field', 0),
+    );
+  }
+
   $form['message'] = array(
     '#type' => 'fieldset',
     '#title' => t('Premium messages'),
