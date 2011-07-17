@@ -118,7 +118,7 @@ function nopremium_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       }
       break;
     case 'view':
-      if ($a3 && nopremium_check_content_extra_field() && $node->premium && !nopremium_access_full_content($node)) {
+      if ($a3 && $node->premium && !nopremium_access_full_content($node) && nopremium_check_content_extra_field()) {
         $node->content['nopremium_message_field'] = array(
           '#value' => theme('nopremium_message', $node, TRUE),
         );
