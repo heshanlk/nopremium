@@ -19,7 +19,7 @@ function nopremium_views_data() {
       'handler' => 'views_handler_field_boolean',
       'click sortable' => TRUE,
       'output formats' => array(
-        'premium' => array('', t('Premium content')),
+        'premium' => array(t('Premium content'), ''),
       ),
     ),
     'filter' => array(
