@@ -1,5 +1,1 @@
-name = NodeÂ OptionÂ Premium
-description = Shows only the teasers of premium contents to unprivileged users.
-configure = admin/config/workflow/nopremium
-; package = 
-core = 7.x
+name = Node Option Premium
