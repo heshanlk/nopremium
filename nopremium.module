@@ -108,6 +108,19 @@ function nopremium_theme() {
 
 
 /**
+ * Implementation of hook_node_view().
+ */
+function nopremium_node_view($node, $view_mode, $langcode) {
+  if ($node->premium && !nopremium_access_full_content($node)) {
+    $node->content['nopremium_message'] = array(
+      '#markup' => theme('nopremium_message', array('node' => $node)),
+    );
+  }
+}
+
+
+
+/**
  * Implementation of hook_node_view_alter().
  */
 function nopremium_node_view_alter(&$build) {
@@ -149,12 +162,17 @@ function nopremium_form_node_form_alter(&$form, &$form_state, $form_id) {
 
   // Allow or not to override the premium option.
   // See http://drupal.org/project/override_node_options
-  if (!user_access('administer nodes') && user_access('override '. $node->type .' premium option')) {
-    foreach (element_children($form['options']) as $key) {
-      if (!isset($form['options'][$key]['#access'])) {
-        $form['options'][$key]['#access'] = FALSE;
+  if (!user_access('administer nodes')) {
+    if (user_access('override premium option of any content type') || user_access('override '. $node->type .' premium option')) {
+      foreach (element_children($form['options']) as $key) {
+        if (!isset($form['options'][$key]['#access'])) {
+          $form['options'][$key]['#access'] = FALSE;
+        }
       }
       $form['options']['#access'] = $form['options']['premium']['#access'] = TRUE;
+    }
+    else {
+      $form['options']['premium']['#access'] = FALSE;
     }
   }
 }
@@ -174,11 +192,14 @@ function nopremium_views_api() {
  * Implementation of hook_permission().
  */
 function nopremium_permission() {
-  $perms = array();
+  $perms['view full premium content of any type'] = array('title' => t('View full premium content of any type'));
+  $perms['override premium option of any content type'] = array('title' => t('Override premium option of any content type'));
+
   foreach (node_type_get_types() as $type => $info) {
     $perms['view full '. $type .' premium content'] = array('title' => t('%type_name: View full premium content', array('%type_name' => $info->name)));
-    $perms['override '. $type .' premium option'] = array('title' => t('%type_name: Override premium content', array('%type_name' => $info->name)));
+    $perms['override '. $type .' premium option'] = array('title' => t('%type_name: Override premium option', array('%type_name' => $info->name)));
   }
+
   return $perms;
 }
 
@@ -325,6 +346,7 @@ function nopremium_access_full_content($node, $account = NULL) {
   }
 
   return user_access('administer nodes', $account)
+    || user_access('view full premium content of any type')
     || user_access('view full '. $node->type .' premium content', $account)
     || node_access('update', $node, $account)
     || $account->uid && ($account->uid == $node->uid);
@@ -344,9 +366,6 @@ function nopremium_alter_node(&$build) {
 
     node_build_content($node, 'teaser', $langcode);
     unset($node->content['links']['node']['#links']['node-readmore']);
-    $node->content['nopremium_message'] = array(
-      '#markup' => theme('nopremium_message', array('node' => $node)),
-    );
 
     $build = $node->content;
     unset($node->content);
@@ -365,8 +384,27 @@ function nopremium_alter_node(&$build) {
     $type = 'node';
     drupal_alter(array('node_view', 'entity_view'), $build, $type);
 
+    // Override _field_extra_fields_pre_render().
+    if (isset($build['#pre_render'])) {
+      $key = array_search('_field_extra_fields_pre_render', $build['#pre_render']);
+      if ($key !== FALSE) {
+        $build['#pre_render'][$key] = '_nopremium_field_extra_fields_pre_render';
+      }
+    }
+
     $build['#view_mode'] = $view_mode;
   }
+}
+
+function _nopremium_field_extra_fields_pre_render($elements) {
+  if (isset($elements['#view_mode'])) {
+    $view_mode = $elements['#view_mode'];
+    $elements['#view_mode'] = 'teaser';
+    $elements = _field_extra_fields_pre_render($elements);
+    $elements['#view_mode'] = $view_mode;
+  }
+
+  return $elements;
 }
 
 
