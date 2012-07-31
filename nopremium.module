@@ -113,7 +113,7 @@ function nopremium_theme() {
 function nopremium_node_view_alter(&$build) {
   $node = $build['#node'];
 
-  if (($build['#view_mode'] != 'teaser') && $node->premium && !nopremium_access_full_content($node)) {
+  if ($build['#view_mode'] != 'teaser' && $build['#view_mode'] != 'search_index' && $node->premium && !nopremium_access_full_content($node)) {
     nopremium_alter_node($build);
   }
 }
