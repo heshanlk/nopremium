@@ -346,7 +346,7 @@ function nopremium_access_full_content($node, $account = NULL) {
   }
 
   return user_access('administer nodes', $account)
-    || user_access('view full premium content of any type')
+    || user_access('view full premium content of any type', $account)
     || user_access('view full '. $node->type .' premium content', $account)
     || node_access('update', $node, $account)
     || $account->uid && ($account->uid == $node->uid);
