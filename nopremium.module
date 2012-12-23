@@ -78,7 +78,7 @@ function nopremium_action_info() {
  * Implementation of a Drupal action.
  * Sets the premium property of a node to 1.
  */
-function node_make_premium_action(&$node, $context = array()) {
+function node_make_premium_action($node, $context = array()) {
   $node->premium = NODE_PREMIUM;
   watchdog('action', 'Set @type %title to premium.', array('@type' => node_type_get_name($node), '%title' => $node->title));
 }
@@ -87,7 +87,7 @@ function node_make_premium_action(&$node, $context = array()) {
  * Implementation of a Drupal action.
  * Sets the premium property of a node to 0.
  */
-function node_make_non_premium_action(&$node, $context = array()) {
+function node_make_non_premium_action($node, $context = array()) {
   $node->premium = NODE_NOT_PREMIUM;
   watchdog('action', 'Set @type %title to non-premium.', array('@type' => node_type_get_name($node), '%title' => $node->title));
 }
