@@ -43,4 +43,8 @@ D8 Port
 Heshan Wanigasooriya <heshan[AT]heidisoft[DOT]com>
 http://heididev.com
 
+D8 Port Supported by ElectricSage, LLC
+Dan Katz <dan.katz[AT]electricsage[DOT]com>
+http://electricsage.com
+
 IF YOU LIKE THIS MODULE, PLEASE REVIEW IT AND ADD IT TO FAVORITES AT DRUPALMODULES.COM.
