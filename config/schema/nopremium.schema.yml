@@ -5,4 +5,10 @@ nopremium.settings:
   mapping:
     default_message:
       type: string
-      label: 'Page alter'
+      label: 'Premium message'
+    view_mode:
+      type: string
+      label: 'Premium view mode'
+    teaser_view_mode:
+      type: string
+      label: 'Teaser view mode'

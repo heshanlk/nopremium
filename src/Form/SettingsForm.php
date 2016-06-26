@@ -15,7 +15,7 @@ use Drupal\Core\Url;
 use Drupal\Core\Entity\EntityManagerInterface;
 
 /**
- * Defines a form that configures devel settings.
+ * Defines a form that configures settings.
  */
 class SettingsForm extends ConfigFormBase {
   
@@ -87,7 +87,25 @@ class SettingsForm extends ConfigFormBase {
          '#default_value' => !empty($nopremium_config->get('default_message' . $content_type->id())) ? $nopremium_config->get('default_message' . $content_type->id()) : $nopremium_config->get('default_message'),
          '#rows' => 3,
        );
-     }
+    }
+    $options = array();
+    foreach($this->entityManager->getViewModes('node') as $id => $view_mode){
+     $options[$id] = $view_mode['label'];
+    }
+    $form['nopremium_view_mode'] = array(
+      '#type' => 'select',
+      '#title' => t('Premium display mode'),
+      '#description' => t('The premium display view mode which we restrict access.'),
+      '#default_value' => $nopremium_config->get('view_mode'),
+      '#options' => $options,
+    );
+    $form['nopremium_teaser_view_mode'] = array(
+      '#type' => 'select',
+      '#title' => t('Teaser display mode'),
+      '#description' => t('Teaser display view mode to render for premium contents.'),
+      '#default_value' => $nopremium_config->get('teaser_view_mode'),
+      '#options' => $options,
+    );
     return parent::buildForm($form, $form_state);
   }
 
@@ -98,6 +116,8 @@ class SettingsForm extends ConfigFormBase {
     $values = $form_state->getValues();
     $this->config('nopremium.settings')
       ->set('default_message', $values['nopremium_message'])
+      ->set('view_mode', $values['nopremium_view_mode'])
+      ->set('teaser_view_mode', $values['nopremium_teaser_view_mode'])
       ->save();
     foreach ($this->entityManager->getStorage('node_type')->loadMultiple() as $content_type) {
       $this->config('nopremium.settings')

@@ -5,6 +5,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\node\NodeForm;
 use Drupal\node\NodeTypeForm;
+use Drupal\node\Entity\NodeType;
 
 /**
  * Implements hook_form_alter().
@@ -98,8 +99,45 @@ function nopremium_entity_base_field_info(EntityTypeInterface $entity_type) {
  */
 function nopremium_entity_view_mode_alter(&$view_mode, Drupal\Core\Entity\EntityInterface $entity, $context) {
   $user = \Drupal::currentUser();
+  $config = \Drupal::config('nopremium.settings');
   // for the nodes in full mode check permissions before give access
-  if ($entity->getEntityTypeId() == 'node' && $view_mode == 'full' && !($user->hasPermission('view full premium content of any type') ||  $user->hasPermission('view full ' . $entity->bundle() . ' premium content'))) {
-    $view_mode = 'teaser';
+  if ($entity->getEntityTypeId() == 'node'
+    && $entity->hasField('premium')
+    && $entity->get('premium')->getValue()[0]['value']
+    && $view_mode == $config->get('view_mode')
+    && !($user->hasPermission('view full premium content of any type') ||  $user->hasPermission('view full ' . $entity->bundle() . ' premium content'))) {
+      $view_mode = $config->get('teaser_view_mode');
+  }
+}
+
+
+/**
+ * Implements hook_entity_extra_field_info().
+ */
+function nopremium_entity_extra_field_info() {
+  $extra = array();
+  foreach (NodeType::loadMultiple() as $bundle) {
+    $extra['node'][$bundle->id()]['display']['premium_message'] = array(
+      'label' => t('Premium message'),
+      'description' => t('Node option premium module message.'),
+      'weight' => 100,
+      'visible' => FALSE,
+    );
+  }
+  return $extra;
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_view().
+ */
+function nopremium_node_view(array &$build, \Drupal\Core\Entity\EntityInterface $entity, \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display, $view_mode) {
+  $config = \Drupal::config('nopremium.settings');
+  if(($view_mode == $config->get('teaser_view_mode')) && $entity->hasField('premium') && $entity->get('premium')->getValue()[0]['value']){
+    $config = \Drupal::config('nopremium.settings');
+    $message = $config->get('default_message');
+    $message = !empty($config->get('default_message' . $entity->bundle())) ? $config->get('default_message' . $entity->bundle()) : $message;
+    $build['premium_message'] = array(
+      '#markup' => $message,
+    );
   }
 }
