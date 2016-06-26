@@ -1,0 +1,105 @@
+<?php
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\node\NodeForm;
+use Drupal\node\NodeTypeForm;
+
+/**
+ * Implements hook_form_alter().
+ * @param $form
+ * @param FormStateInterface $form_state
+ */
+function nopremium_form_alter(array &$form, FormStateInterface $form_state) {
+  $form_object = $form_state->getFormObject();
+  // NodeForm
+  if ($form_object instanceof NodeForm) {
+    $user = \Drupal::currentUser();
+    $node_type = $form_state->getBuildInfo()['callback_object']->getEntity();
+    $form['premium']['#group'] = 'premium_publish_options';
+    $form['premium']['#access'] = ($user->hasPermission('override premium option of any content type') ||  $user->hasPermission('override ' . $node_type->id() . ' premium content'));
+    $form['premium_publish_options'] = array(
+      '#type' => 'details',
+      '#title' => t('Premium Options'),
+      '#group' => 'advanced',
+      '#attributes' => array(
+        'class' => array('node-form-premium-publish-options'),
+      ),
+      '#weight' => 1000,
+      '#optional' => TRUE,
+    );
+  }
+  // NodeTypeForm
+  if ($form_object instanceof NodeTypeForm) {
+    $node_type = $form_state->getBuildInfo()['callback_object']->getEntity();
+    $fields = \Drupal::entityManager()->getFieldDefinitions('node', $node_type->id());
+    $form['workflow']['options']['#options']['premium'] = t('Premium content');
+    $form['actions']['submit']['#submit'][] = 'nopremium_node_type_edit_form_submit';
+    // Set the checkbox value when active
+    if (isset($fields['premium'])) {
+      $field_config = $fields['premium']->getConfig($node_type->id());
+      if ($field_config->get('default_value')[0]['value']) {
+        $form['workflow']['options']['#default_value']['premium'] = 'premium';
+      }
+    }
+  } 
+}
+
+/**
+ * Submit handler for node type forms.
+ * @param $form
+ * @param FormStateInterface $form_state
+ * @see nopremium_form_alter()
+ */
+function nopremium_node_type_edit_form_submit($form, FormStateInterface $form_state){
+  $values = $form_state->getValues();
+  $node_type = $form_state->getBuildInfo()['callback_object']->getEntity();
+  $fields = \Drupal::entityManager()->getFieldDefinitions('node', $node_type->id());
+  if (in_array('premium', $values['options'])) {
+    $value = (bool) $values['options']['premium'];
+    $fields['premium']->getConfig($node_type->id())->setDefaultValue($value)->save();
+  }
+}
+
+/**
+ * Implements hook_entity_base_field_info().
+ * @param EntityTypeInterface $entity_type
+ * @return array
+ */
+function nopremium_entity_base_field_info(EntityTypeInterface $entity_type) {
+  if ($entity_type->id() === 'node') {
+    $fields = [];
+    $fields['premium'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('@label', ['@label' => 'Premium content']))
+      ->setDescription(t('@description', ['@description' => 'Shows only the teasers of premium contents to unprivileged users.']))
+      ->setRevisionable(TRUE)
+      ->setTranslatable(TRUE)
+      ->setDefaultValue(0)
+      ->setDisplayConfigurable('form', true)
+      ->setDisplayOptions('form', array(
+        'type' => 'boolean_checkbox',
+        'settings' => array(
+          'display_label' => TRUE,
+        ),
+        'weight' => 16,
+      )
+    );
+    return $fields;
+  }
+}
+
+/**
+ * Implements entity_view_mode_alter().
+ * @param string $view_mode
+ * @param EntityInterface $entity
+ * @param EntityViewDisplayInterface $display
+ * @param array $view_mode
+ */
+function nopremium_entity_view_mode_alter(&$view_mode, Drupal\Core\Entity\EntityInterface $entity, $context) {
+  $user = \Drupal::currentUser();
+  // for the nodes in full mode check permissions before give access
+  if ($entity->getEntityTypeId() == 'node' && $view_mode == 'full' && !($user->hasPermission('view full premium content of any type') ||  $user->hasPermission('view full ' . $entity->bundle() . ' premium content'))) {
+    $view_mode = 'teaser';
+  }
+}

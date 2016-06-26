@@ -1,0 +1,12 @@
+view full premium content of any type:
+  title: 'View full premium content of any type'
+  description: 'View full premium content of any type.'
+  restrict access: true
+  
+override premium option of any content type:
+  title: 'Override premium option of any content type'
+  description: 'Override premium option of any content type.'
+  restrict access: true
+  
+permission_callbacks:
+  - \Drupal\nopremium\NodeOptionPremiumPermissions::nodeTypePermissions

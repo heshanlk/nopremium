@@ -1,0 +1,8 @@
+# Schema for the configuration files of the nopremium module.
+nopremium.settings:
+  type: config_object
+  label: 'Node option premium settings'
+  mapping:
+    default_message:
+      type: string
+      label: 'Page alter'

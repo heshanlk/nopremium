@@ -1,0 +1,21 @@
+{
+  "name": "drupal/nopremium",
+  "description": "Shows only the teasers of premium contents to unprivileged users.",
+  "type": "drupal-module",
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "Heshan Wanigasooriya",
+      "email": "heshan@heidisoft.com",
+      "homepage": "https://github.com/heshanlk",
+      "role": "Maintainer"
+    }
+  ],
+  "support": {
+    "issues": "http://drupal.org/project/nopremium",
+    "irc": "irc://irc.freenode.org/drupal-support",
+    "source": "http://cgit.drupalcode.org/nopremium"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

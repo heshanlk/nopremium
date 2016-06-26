@@ -1,0 +1,7 @@
+name: Node Option Premium
+type: module
+description: 'Shows only the teasers of premium contents to unprivileged users.'
+# package: Utility
+core: 8.x
+dependencies:
+  - node

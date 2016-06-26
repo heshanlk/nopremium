@@ -1,0 +1,7 @@
+nopremium.admin_settings:
+  path: '/admin/config/content/nopremium'
+  defaults:
+    _form: '\Drupal\nopremium\Form\SettingsForm'
+    _title: 'Node option premium settings'
+  requirements:
+    _permission: 'administer site configuration'
