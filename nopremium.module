@@ -131,11 +131,14 @@ function nopremium_entity_extra_field_info() {
  * Implements hook_ENTITY_TYPE_view().
  */
 function nopremium_node_view(array &$build, \Drupal\Core\Entity\EntityInterface $entity, \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display, $view_mode) {
+  $user = \Drupal::currentUser();
+  $token_service = \Drupal::token();
   $config = \Drupal::config('nopremium.settings');
   if(($view_mode == $config->get('teaser_view_mode')) && $entity->hasField('premium') && $entity->get('premium')->getValue()[0]['value']){
-    $config = \Drupal::config('nopremium.settings');
     $message = $config->get('default_message');
     $message = !empty($config->get('default_message' . $entity->bundle())) ? $config->get('default_message' . $entity->bundle()) : $message;
+    // Replace tokens if avaialbe
+    $message = $token_service->replace($message, array('user' => $user, 'node' => $entity));
     $build['premium_message'] = array(
       '#markup' => $message,
     );

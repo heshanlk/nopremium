@@ -88,6 +88,18 @@ class SettingsForm extends ConfigFormBase {
          '#rows' => 3,
        );
     }
+    if (\Drupal::moduleHandler()->moduleExists('token')) {
+      $form['message']['token_tree'] = array(
+        '#theme' => 'token_tree_link',
+        '#token_types' => array('user', 'node'),
+        '#weight' => 90,
+      );
+    }
+    else {
+      $form['message']['token_tree'] = array(
+        '#markup' => '<p>' . t('Enable the <a href="@drupal-token">Token module</a> to view the available token browser.', array('@drupal-token' => 'http://drupal.org/project/token')) . '</p>',
+      );
+    }
     $options = array();
     foreach($this->entityManager->getViewModes('node') as $id => $view_mode){
      $options[$id] = $view_mode['label'];
